@@ -28,9 +28,6 @@ services:
       - ERROR_LOG_NAME=${ERROR_LOG_NAME:-http-proxy-error.log}
     # 使用启动脚本替换环境变量
     entrypoint: ["/bin/sh", "/docker-entrypoint.sh"]
-    # 覆盖 DNS 解析，让容器内能正确解析 docker.fnnas.com 到外部 IP
-    #extra_hosts:
-    #  - "docker.fnnas.com:182.201.243.23"
     restart: unless-stopped
     networks:
       - proxy-network
@@ -42,10 +39,11 @@ services:
       retries: 3
       start_period: 10s
 
+# volumes 部分：仅在需要日志功能时取消注释
+# 如果 ENABLE_LOG_VOLUME=false，请保持此部分注释状态
 volumes:
-  # 日志目录卷（Docker 自动创建，无需手动创建目录）
-  nginx-logs:
-    driver: local
+ nginx-logs:
+   driver: local
 
 networks:
   proxy-network:
