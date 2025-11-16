@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  nginx-proxy:
+    image: nginx:alpine
+    container_name: docker-registry-proxy
+    ports:
+      # HTTP 方案：监听 15000 端口，允许局域网访问
+      - "0.0.0.0:15000:15000"
+    volumes:
+      # 挂载 Nginx 配置文件模板（使用环境变量占位符）
+      - ./nginx-http-proxy.conf:/etc/nginx/templates/default.conf.template:ro
+      # 挂载启动脚本
+      - ./docker-entrypoint.sh:/docker-entrypoint.sh:ro
+      # 日志目录挂载（根据 ENABLE_LOG_VOLUME 环境变量决定）
+      # true: 使用 named volume（自动创建，无需手动创建目录）
+      # false: 不挂载日志目录
+      - nginx-logs:/var/log/nginx
+    environment:
+      # 通过环境变量传递认证信息（从 .env 文件读取）
+      - META_TOKEN=${META_TOKEN}
+      - META_SIGN=${META_SIGN}
+      # 日志开关配置（从 .env 文件读取，默认关闭）
+      - ENABLE_ACCESS_LOG=${ENABLE_ACCESS_LOG:-false}
+      - ENABLE_ERROR_LOG=${ENABLE_ERROR_LOG:-false}
+      # 日志文件配置（从 .env 文件读取，仅在日志开启时使用）
+      - ACCESS_LOG_NAME=${ACCESS_LOG_NAME:-http-proxy-access.log}
+      - ERROR_LOG_NAME=${ERROR_LOG_NAME:-http-proxy-error.log}
+    # 使用启动脚本替换环境变量
+    entrypoint: ["/bin/sh", "/docker-entrypoint.sh"]
+    # 覆盖 DNS 解析，让容器内能正确解析 docker.fnnas.com 到外部 IP
+    #extra_hosts:
+    #  - "docker.fnnas.com:182.201.243.23"
+    restart: unless-stopped
+    networks:
+      - proxy-network
+    # 健康检查（使用 nginx 内置的测试）
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  # 日志目录卷（Docker 自动创建，无需手动创建目录）
+  nginx-logs:
+    driver: local
+
+networks:
+  proxy-network:
+    driver: bridge
+
