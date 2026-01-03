@@ -7,7 +7,7 @@
 [![GitHub](https://img.shields.io/badge/GitHub-hillghost86%2Ffnnas--docker--proxy-blue?logo=github)](https://github.com/hillghost86/fnnas-docker-proxy)
 [![Gitee](https://img.shields.io/badge/Gitee-hillghost86%2Ffnnas--docker--proxy-red?logo=gitee)](https://gitee.com/hillghost86/fnnas-docker-proxy)
 
-> 使用 Nginx 反向代理为飞牛 NAS (FNNAS) 的 Docker Registry 添加自定义认证 headers，实现 Docker 镜像加速。
+> 使用 Nginx 反向代理为飞牛 NAS (FNNAS) 的 Docker Registry ，实现 Docker 镜像加速。再配上域名、DDNS、内网穿透，能干的事情各位自己琢磨吧！
 
 
 
