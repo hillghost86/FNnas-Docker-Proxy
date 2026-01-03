@@ -1,7 +1,7 @@
 services:
   nginx-proxy:
     image: nginx:alpine
-    container_name: fnnas-docker-proxy
+    container_name: fn-docker-proxy
     ports:
       # HTTP 方案：监听 15000 端口，允许局域网访问
       - "0.0.0.0:15000:15000"
@@ -16,6 +16,9 @@ services:
       - ./docker-setup-cron.sh:/app/scripts/setup-cron.sh:ro
       # 挂载 .env 文件为可写（用于自动更新）
       - ./.env:/app/.env:rw
+      # 挂载静态文件（搜索页面）
+      # 使用 rw（可读写）以便容器内可以自动修复权限
+      - ./www:/usr/share/nginx/html:rw
       # 挂载时区文件（可选，如果宿主机有时区文件可以挂载）
       # - /etc/localtime:/etc/localtime:ro
       # 挂载飞牛 NAS 的配置文件（直接挂载模式）

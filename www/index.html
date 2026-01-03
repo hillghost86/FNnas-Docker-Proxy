@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FN Docker Proxy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .fade-in {
+            animation: fadeIn 0.5s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- 头部 -->
+        <header class="text-center mb-12 fade-in">
+            <h1 class="text-5xl font-bold text-gray-800 mb-4">🐳 FN Docker Proxy</h1>
+            <p class="text-xl text-gray-600">通过 Nginx 反向代理飞牛 NAS 的 Docker Registry，实现局域网内 Docker 镜像加速</p>
+        </header>
+
+        <!-- 功能特性 -->
+        <section class="bg-white rounded-lg shadow-md p-8 mb-8 fade-in">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6">✨ 功能特性</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex items-start">
+                    <span class="text-2xl mr-3">🔐</span>
+                    <div>
+                        <h3 class="font-semibold text-gray-800 mb-1">自动认证</h3>
+                        <p class="text-gray-600 text-sm">自动添加认证 headers，无需手动配置</p>
+                    </div>
+                </div>
+                <div class="flex items-start">
+                    <span class="text-2xl mr-3">🔄</span>
+                    <div>
+                        <h3 class="font-semibold text-gray-800 mb-1">自动更新</h3>
+                        <p class="text-gray-600 text-sm">定时自动更新认证信息，保持服务稳定</p>
+                    </div>
+                </div>
+                <div class="flex items-start">
+                    <span class="text-2xl mr-3">⚡</span>
+                    <div>
+                        <h3 class="font-semibold text-gray-800 mb-1">镜像加速</h3>
+                        <p class="text-gray-600 text-sm">局域网内 Docker 镜像拉取加速</p>
+                    </div>
+                </div>
+                <div class="flex items-start">
+                    <span class="text-2xl mr-3">🛡️</span>
+                    <div>
+                        <h3 class="font-semibold text-gray-800 mb-1">安全可靠</h3>
+                        <p class="text-gray-600 text-sm">使用 Nginx 反向代理，稳定可靠</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 快速开始 -->
+        <section class="bg-white rounded-lg shadow-md p-8 mb-8 fade-in">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6">🚀 快速开始</h2>
+            <div class="space-y-6">
+                <div>
+                    <h3 class="font-semibold text-gray-800 mb-2">1. 克隆项目</h3>
+                    <div class="space-y-2">
+                        <div class="bg-gray-100 rounded-lg p-4 relative group">
+                            <code class="text-sm" id="clone-github">git clone https://github.com/hillghost86/fn-docker-proxy.git</code>
+                            <button onclick="copyToClipboard('clone-github')" class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded text-xs" title="复制">
+                                📋 复制
+                            </button>
+                        </div>
+                        <div class="bg-gray-100 rounded-lg p-4 relative group">
+                            <code class="text-sm" id="clone-gitee">git clone https://gitee.com/hillghost86/fn-docker-proxy.git</code>
+                            <button onclick="copyToClipboard('clone-gitee')" class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded text-xs" title="复制">
+                                📋 复制
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-gray-800 mb-2">2. 设置文件权限（必须步骤）</h3>
+                    <p class="text-gray-600 text-sm mb-2">首次启动前必须设置 <code class="bg-gray-200 px-1 rounded">www</code> 目录权限，避免 403 错误：</p>
+                    <div class="bg-gray-100 rounded-lg p-4 relative group">
+                        <code class="text-sm" id="chmod-cmd">chmod 755 www/<br>chmod 644 www/index.html</code>
+                        <button onclick="copyToClipboard('chmod-cmd')" class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded text-xs" title="复制">
+                            📋 复制
+                        </button>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-gray-800 mb-2">3. 启动服务</h3>
+                    <div class="bg-gray-100 rounded-lg p-4 relative group">
+                        <code class="text-sm" id="start-cmd">docker compose up -d</code>
+                        <button onclick="copyToClipboard('start-cmd')" class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded text-xs" title="复制">
+                            📋 复制
+                        </button>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-gray-800 mb-2">4. 配置 Docker 客户端</h3>
+                    <p class="text-gray-600 text-sm mb-2">编辑 Docker 配置文件（根据系统不同，路径可能不同）：</p>
+                    <div class="bg-gray-100 rounded-lg p-4 mb-2">
+                        <code class="text-sm"># Linux: /etc/docker/daemon.json<br># macOS/Windows: Docker Desktop -> Settings -> Docker Engine</code>
+                    </div>
+                    <p class="text-gray-600 text-sm mb-2">添加以下配置（将 <code class="bg-gray-200 px-1 rounded">192.168.1.100</code> 替换为你的飞牛 IP 地址）：</p>
+                    <div class="bg-gray-100 rounded-lg p-4 relative group">
+                        <pre class="text-sm overflow-x-auto"><code id="docker-config">{
+  "registry-mirrors": [
+    "http://192.168.1.100:15000"
+  ],
+  "insecure-registries": [
+    "192.168.1.100:15000"
+  ]
+}</code></pre>
+                        <button onclick="copyToClipboard('docker-config')" class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded text-xs" title="复制">
+                            📋 复制
+                        </button>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-gray-800 mb-2">5. 重启 Docker 服务</h3>
+                    <div class="bg-gray-100 rounded-lg p-4 relative group">
+                        <code class="text-sm" id="restart-cmd"># Linux<br>sudo systemctl restart docker<br><br># macOS/Windows: 在 Docker Desktop 中重启服务</code>
+                        <button onclick="copyToClipboard('restart-cmd')" class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded text-xs" title="复制">
+                            📋 复制
+                        </button>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-gray-800 mb-2">6. 测试</h3>
+                    <div class="bg-gray-100 rounded-lg p-4 relative group">
+                        <code class="text-sm" id="test-cmd">docker pull alpine:latest</code>
+                        <button onclick="copyToClipboard('test-cmd')" class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded text-xs" title="复制">
+                            📋 复制
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 工作原理 -->
+        <section class="bg-white rounded-lg shadow-md p-8 mb-8 fade-in">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6">🔧 工作原理</h2>
+            <div class="space-y-4">
+                <div class="flex items-start">
+                    <span class="text-xl font-bold text-blue-600 mr-3">1</span>
+                    <div>
+                        <p class="text-gray-700">Docker 客户端请求 <code class="bg-gray-100 px-2 py-1 rounded text-sm">http://你的IP:15000/v2/...</code></p>
+                    </div>
+                </div>
+                <div class="flex items-start">
+                    <span class="text-xl font-bold text-blue-600 mr-3">2</span>
+                    <div>
+                        <p class="text-gray-700">Nginx 代理到 <code class="bg-gray-100 px-2 py-1 rounded text-sm">https://docker.fnnas.com</code>，自动添加认证 headers</p>
+                    </div>
+                </div>
+                <div class="flex items-start">
+                    <span class="text-xl font-bold text-blue-600 mr-3">3</span>
+                    <div>
+                        <p class="text-gray-700">返回的 <code class="bg-gray-100 px-2 py-1 rounded text-sm">WWW-Authenticate</code> header 被重写为代理地址</p>
+                    </div>
+                </div>
+                <div class="flex items-start">
+                    <span class="text-xl font-bold text-blue-600 mr-3">4</span>
+                    <div>
+                        <p class="text-gray-700">Docker 使用重写后的地址获取 token，继续通过代理完成镜像拉取</p>
+                    </div>
+                </div>
+                <div class="flex items-start">
+                    <span class="text-xl font-bold text-blue-600 mr-3">5</span>
+                    <div>
+                        <p class="text-gray-700">定时任务自动检测认证信息变化，更新配置并重新加载 Nginx</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 配置说明 -->
+        <section class="bg-white rounded-lg shadow-md p-8 mb-8 fade-in">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6">⚙️ 配置说明</h2>
+            <div class="space-y-4">
+                <div>
+                    <h3 class="font-semibold text-gray-800 mb-2">自动更新（推荐）</h3>
+                    <p class="text-gray-600 text-sm mb-2">项目默认启用自动更新，系统会自动从飞牛 NAS 的配置文件中获取认证信息。</p>
+                    <p class="text-gray-600 text-sm">配置文件路径：<code class="bg-gray-100 px-2 py-1 rounded text-sm">/root/.docker/config.json</code></p>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-gray-800 mb-2">更新间隔</h3>
+                    <p class="text-gray-600 text-sm">默认 3600 秒（1小时），可在 <code class="bg-gray-100 px-2 py-1 rounded text-sm">.env</code> 文件中修改 <code class="bg-gray-100 px-2 py-1 rounded text-sm">UPDATE_INTERVAL</code></p>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-gray-800 mb-2">时区设置</h3>
+                    <p class="text-gray-600 text-sm">默认使用北京时间（Asia/Shanghai，CST，UTC+8）</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 注意事项 -->
+        <section class="bg-yellow-50 border border-yellow-200 rounded-lg p-8 mb-8 fade-in">
+            <h2 class="text-2xl font-semibold text-yellow-800 mb-6">⚠️ 注意事项</h2>
+            <ul class="space-y-3 text-yellow-700">
+                <li class="flex items-start">
+                    <span class="mr-2">•</span>
+                    <span>本项目<strong>仅限在飞牛 NAS 上使用</strong>，因为需要直接挂载飞牛 NAS 的配置文件</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="mr-2">•</span>
+                    <span>确保容器可以读取挂载的配置文件（<code class="bg-yellow-100 px-1 rounded">/root/.docker/config.json</code>）</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="mr-2">•</span>
+                    <span>不要设置太频繁的更新间隔，建议至少 10 分钟</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="mr-2">•</span>
+                    <span>如果遇到权限问题，请运行 <code class="bg-yellow-100 px-1 rounded">chmod 755 www/ && chmod 644 www/index.html</code></span>
+                </li>
+            </ul>
+        </section>
+
+        <!-- 链接 -->
+        <section class="bg-white rounded-lg shadow-md p-8 fade-in">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6">🔗 相关链接</h2>
+            <div class="flex flex-wrap gap-4">
+                <a href="https://github.com/hillghost86/fn-docker-proxy" target="_blank" class="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                    📦 GitHub
+                </a>
+                <a href="https://gitee.com/hillghost86/fn-docker-proxy" target="_blank" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                    📦 Gitee
+                </a>
+            </div>
+        </section>
+
+        <!-- 页脚 -->
+        <footer class="text-center mt-12 text-gray-500 text-sm fade-in">
+            <p>FN Docker Proxy | 使用 Nginx 反向代理实现 Docker 镜像加速</p>
+        </footer>
+    </div>
+
+    <script>
+        // 复制到剪贴板功能
+        function copyToClipboard(elementId) {
+            const element = document.getElementById(elementId);
+            let text = '';
+            
+            // 如果是 <code> 标签，获取文本内容
+            if (element.tagName === 'CODE') {
+                text = element.textContent || element.innerText;
+            } else if (element.tagName === 'PRE') {
+                text = element.textContent || element.innerText;
+            } else {
+                text = element.textContent || element.innerText;
+            }
+            
+            // 处理多行文本（移除 <br> 标签，保留换行）
+            text = text.replace(/<br\s*\/?>/gi, '\n').trim();
+            
+            // 使用 Clipboard API
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showCopySuccess(elementId);
+                }).catch(err => {
+                    console.error('复制失败:', err);
+                    fallbackCopyTextToClipboard(text, elementId);
+                });
+            } else {
+                // 降级方案
+                fallbackCopyTextToClipboard(text, elementId);
+            }
+        }
+        
+        // 降级复制方案
+        function fallbackCopyTextToClipboard(text, elementId) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showCopySuccess(elementId);
+                } else {
+                    alert('复制失败，请手动选择文本复制');
+                }
+            } catch (err) {
+                console.error('复制失败:', err);
+                alert('复制失败，请手动选择文本复制');
+            }
+            
+            document.body.removeChild(textArea);
+        }
+        
+        // 显示复制成功提示
+        function showCopySuccess(elementId) {
+            const button = document.querySelector(`[onclick="copyToClipboard('${elementId}')"]`);
+            if (button) {
+                const originalText = button.textContent;
+                button.textContent = '✓ 已复制';
+                button.classList.add('bg-green-200', 'hover:bg-green-300');
+                button.classList.remove('bg-gray-200', 'hover:bg-gray-300');
+                
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.classList.remove('bg-green-200', 'hover:bg-green-300');
+                    button.classList.add('bg-gray-200', 'hover:bg-gray-300');
+                }, 2000);
+            }
+        }
+    </script>
+</body>
+</html>

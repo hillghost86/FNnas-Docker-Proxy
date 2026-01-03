@@ -2,8 +2,10 @@
 set -e
 
 # 设置时区为北京时间（必须在最前面，确保所有命令都使用正确时区）
+# 注意：如果使用构建的镜像，tzdata 已在构建时安装，这里只需要设置时区
+# 如果直接使用 nginx:alpine，这里会检查并安装 tzdata
 if [ -n "$TZ" ]; then
-    # 安装 tzdata（Alpine 默认不包含）
+    # 检查 tzdata 是否已安装（构建镜像时已安装，直接使用 nginx:alpine 时需要安装）
     if [ ! -d /usr/share/zoneinfo ]; then
         echo "安装 tzdata..."
         apk add --no-cache tzdata >/dev/null 2>&1 || true
@@ -19,7 +21,9 @@ if [ -n "$TZ" ]; then
     fi
 else
     # 如果没有设置 TZ，默认使用北京时间
+    # 检查 tzdata 是否已安装
     if [ ! -d /usr/share/zoneinfo ]; then
+        echo "安装 tzdata..."
         apk add --no-cache tzdata >/dev/null 2>&1 || true
     fi
     if [ -f /usr/share/zoneinfo/Asia/Shanghai ]; then
@@ -33,6 +37,56 @@ fi
 # 如果日志目录挂载存在，确保目录可写
 if [ -d "/var/log/nginx" ]; then
     chmod 755 /var/log/nginx 2>/dev/null || true
+fi
+
+# 检查静态文件权限（必须在 Nginx 启动前设置）
+# 注意：如果使用构建的镜像，文件已复制到镜像中，权限已在构建时设置
+# 如果使用挂载的 www 目录，可能需要检查并修复权限
+if [ -d "/usr/share/nginx/html" ]; then
+    # 检查文件是否存在
+    if [ ! -f "/usr/share/nginx/html/index.html" ]; then
+        echo "⚠ 警告: index.html 文件不存在，工具介绍页面将不可用"
+    else
+        # 获取当前权限
+        current_file_perm=$(stat -c "%a" /usr/share/nginx/html/index.html 2>/dev/null || echo "000")
+        current_dir_perm=$(stat -c "%a" /usr/share/nginx/html 2>/dev/null || echo "000")
+        
+        # 检查其他用户是否有读权限（第3位数字）
+        file_other_read=$((current_file_perm % 10))
+        dir_other_exec=$((current_dir_perm % 10))
+        
+        # 如果权限不足，尝试修复
+        if [ "$file_other_read" -lt 4 ] || [ "$dir_other_exec" -lt 5 ]; then
+            echo "检测到文件权限问题（文件: $current_file_perm, 目录: $current_dir_perm），尝试自动修复..."
+            
+            # 尝试修复权限
+            chmod 755 /usr/share/nginx/html 2>/dev/null || true
+            chmod 644 /usr/share/nginx/html/index.html 2>/dev/null || true
+            find /usr/share/nginx/html -type f -exec chmod 644 {} \; 2>/dev/null || true
+            find /usr/share/nginx/html -type d -exec chmod 755 {} \; 2>/dev/null || true
+            
+            # 重新检查权限
+            new_file_perm=$(stat -c "%a" /usr/share/nginx/html/index.html 2>/dev/null || echo "000")
+            new_dir_perm=$(stat -c "%a" /usr/share/nginx/html 2>/dev/null || echo "000")
+            new_file_other_read=$((new_file_perm % 10))
+            new_dir_other_exec=$((new_dir_perm % 10))
+            
+            if [ "$new_file_other_read" -ge 4 ] && [ "$new_dir_other_exec" -ge 5 ]; then
+                echo "✓ 权限已自动修复（文件: $current_file_perm -> $new_file_perm, 目录: $current_dir_perm -> $new_dir_perm）"
+            else
+                # 权限修复失败，给出警告但不阻止启动（可能文件系统不支持容器内修改权限）
+                echo "⚠ 警告: 无法在容器内自动修复权限（文件: $new_file_perm, 目录: $new_dir_perm）"
+                echo "   这通常发生在某些 NAS 文件系统上，它们不支持在容器内修改挂载文件的权限。"
+                echo "   如果访问工具介绍页面时出现 403 错误，请在宿主机上执行："
+                echo "   chmod 755 www/ && chmod 644 www/index.html"
+                echo "   或运行: chmod 755 www/ && chmod 644 www/index.html"
+                echo "   然后重启容器: docker compose restart"
+                echo "   或者使用构建的镜像（文件已内置，无需挂载 www 目录）"
+            fi
+        else
+            echo "✓ 静态文件权限检查通过（文件: $current_file_perm, 目录: $current_dir_perm）"
+        fi
+    fi
 fi
 
 # 如果启用了自动更新，安装必要工具并启动 cron

@@ -1,19 +1,20 @@
-# fnnas-docker-proxy
+# fn-docker-proxy
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Docker](https://img.shields.io/badge/docker-ready-blue.svg)
 ![Nginx](https://img.shields.io/badge/nginx-proxy-green.svg)
 
-[![GitHub](https://img.shields.io/badge/GitHub-hillghost86%2Ffnnas--docker--proxy-blue?logo=github)](https://github.com/hillghost86/fnnas-docker-proxy)
-[![Gitee](https://img.shields.io/badge/Gitee-hillghost86%2Ffnnas--docker--proxy-red?logo=gitee)](https://gitee.com/hillghost86/fnnas-docker-proxy)
+[![GitHub](https://img.shields.io/badge/GitHub-hillghost86%2Ffn--docker--proxy-blue?logo=github)](https://github.com/hillghost86/fn-docker-proxy)
+[![Gitee](https://img.shields.io/badge/Gitee-hillghost86%2Ffn--docker--proxy-red?logo=gitee)](https://gitee.com/hillghost86/fn-docker-proxy)
 
-> 使用 Nginx 反向代理为飞牛 NAS (FNNAS) 的 Docker Registry 添加自定义认证 headers，实现局域网内 Docker 镜像加速。
+> 使用 Nginx 反向代理为飞牛 NAS (FNNAS) 的 Docker Registry 添加自定义认证 headers，实现 Docker 镜像加速。
 
 
 
-通过 Nginx 反向代理飞牛 NAS 的 Docker Registry，自动添加认证 headers，支持**自动更新认证信息**，实现局域网内 Docker 镜像加速。
+通过 Nginx 反向代理 飞牛NAS 的 Docker Registry，实现 Docker 镜像加速。
 
-> **⚠️ 重要提示**：本项目**仅限在飞牛 NAS 上使用**。因为需要直接挂载飞牛 NAS 的配置文件（`/root/.docker/config.json`）来获取认证信息，所以 Docker 容器必须在飞牛 NAS 上运行。不支持在其他系统上使用。
+
+> **⚠️ 重要提示**：本项目**只能在 飞牛NAS 上部署**。因为需要直接挂载飞牛 NAS 的配置文件（`/root/.docker/config.json`）来获取认证信息，所以 Docker 容器必须在飞牛 NAS 上运行。不支持在其他系统上部署。
 
 ## 📋 目录
 
@@ -33,10 +34,11 @@
 - ✅ **重写认证头** - 重写 `WWW-Authenticate` header，确保 Docker 通过代理获取 token
 - ✅ **HTTP 协议支持** - 支持 HTTP 协议，无需配置 SSL 证书
 - ✅ **局域网部署** - 支持局域网部署（监听 `0.0.0.0:15000`）
+- ✅ **Docker 镜像打包** - 支持将项目打包成 Docker 镜像，方便部署和分发
 
 ## 🚀 快速开始
 
-> **📌 使用前提**：本项目必须在**飞牛 NAS 上运行**，因为需要挂载飞牛 NAS 的配置文件来获取认证信息。请确保你的 Docker 环境运行在飞牛 NAS 上。
+> **📌 使用前提**：本项目必须在**飞牛NAS 上运行**，因为需要挂载飞牛 NAS 的配置文件来获取认证信息。请确保你的 Docker 环境运行在 飞牛NAS 上。
 
 ### 1. 克隆仓库
 
@@ -46,42 +48,104 @@
 
 ```bash
 # HTTPS 方式
-git clone https://github.com/hillghost86/fnnas-docker-proxy.git
-cd fnnas-docker-proxy
+git clone https://github.com/hillghost86/fn-docker-proxy.git
+cd fn-docker-proxy
 ```
 
 ```bash
 # SSH 方式
-git clone git@github.com:hillghost86/fnnas-docker-proxy.git
-cd fnnas-docker-proxy
+git clone git@github.com:hillghost86/fn-docker-proxy.git
+cd fn-docker-proxy
 ```
 
 **Gitee（国内镜像，访问更快）：**
 
 ```bash
 # HTTPS 方式
-git clone https://gitee.com/hillghost86/fnnas-docker-proxy.git
-cd fnnas-docker-proxy
+git clone https://gitee.com/hillghost86/fn-docker-proxy.git
+cd fn-docker-proxy
 ```
 
 ```bash
 # SSH 方式
-git clone git@gitee.com:hillghost86/fnnas-docker-proxy.git
-cd fnnas-docker-proxy
+git clone git@gitee.com:hillghost86/fn-docker-proxy.git
+cd fn-docker-proxy
 ```
 
 ### 2. 启动服务
 
+**方式一：使用预构建镜像（推荐，无需构建）**
+
 ```bash
+# 1. 设置文件权限（必须步骤，避免 403 错误）
+chmod 755 www/
+chmod 644 www/index.html
+
+# 2. 启动服务
 docker compose up -d
 ```
 
+
 > **💡 提示**：
-> - 直接使用 `nginx:alpine` 镜像，无需构建
-> - 启动时会自动安装必要的工具（jq、dcron）大概需要几分钟的时间，耐心等待一会。
+> - **重要**：首次启动前必须设置 `www` 目录权限，否则访问工具介绍页面会出现 403 错误
+> - 直接使用 `nginx:alpine` 镜像，启动时会自动安装必要的工具（jq、dcron）
+> - 首次启动可能需要几分钟时间安装工具，请耐心等待
 > - 默认启用自动更新，认证信息会在启动时自动获取
 > - 所有日志使用北京时间（CST，UTC+8）
-> - 浏览器访问 http://飞牛ip地址:15000/health  例如 http://192.168.1.100:15000/health 显示OK，说明服务启动成功了。此处的 192.168.1.100 替换为你飞牛的IP地址。
+> - 浏览器访问 `http://飞牛IP地址:15000/health` 显示 OK，说明服务启动成功
+> - 浏览器访问 `http://飞牛IP地址:15000` 可以打开工具介绍页面
+> - 如果访问页面出现 403 错误，请检查 `www` 目录权限并运行 `chmod 755 www/ && chmod 644 www/index.html`
+
+**方式二：构建自定义镜像**
+
+如果需要将项目打包成 Docker 镜像，可以使用：
+
+> **⚠️ 重要提示**：如果 Docker 配置了 `docker.fnnas.com` 作为 registry mirror，构建前需要先手动拉取基础镜像。
+
+```bash
+# 1. 先手动拉取基础镜像（必须步骤）
+docker pull nginx:alpine
+
+# 2. 使用 docker-compose 构建
+docker compose -f docker-compose.build.yml build
+
+# 3. 启动服务
+docker compose -f docker-compose.build.yml up -d
+```
+
+或者直接使用 Docker 命令：
+
+```bash
+# 1. 先手动拉取基础镜像（必须步骤）
+docker pull nginx:alpine
+
+# 2. 构建镜像
+docker build -t fn-docker-proxy:latest .
+
+# 3. 启动容器
+docker run -d \
+  --name fn-docker-proxy \
+  -p 15000:15000 \
+  -v $(pwd)/.env:/app/.env:rw \
+  -v /root/.docker/config.json:/app/fnnas-config.json:ro \
+  -v nginx-logs:/var/log/nginx \
+  -v $(pwd)/logs:/var/log/cron \
+  -e TZ=Asia/Shanghai \
+  -e ENABLE_AUTO_UPDATE=true \
+  -e UPDATE_INTERVAL=3600 \
+  --restart unless-stopped \
+  fn-docker-proxy:latest
+```
+
+> **💡 为什么需要先手动拉取镜像？**
+> - 飞牛NAS 的docker 配置了 `docker.fnnas.com` 作为 registry mirror，如果不先拉去基础镜像，构建时可能会失败
+> - 先手动拉取 `nginx:alpine` 可以确保基础镜像已存在，构建时会使用本地镜像
+> - 如果本地已有 `nginx:alpine`，可以跳过拉取步骤
+
+> **💡 构建镜像的优势**：
+> - 所有工具（jq、dcron、tzdata）已预装，启动更快
+> - 文件已复制到镜像中，无需挂载脚本文件
+> - 适合需要分发或部署到多台机器的场景
 
 ### 3. 配置 Docker 客户端
 
@@ -140,7 +204,7 @@ Registry Mirrors:
 ```
 
 
-## 自定义配置
+## 自定义配置 （基本不需要自定义）
 
 以下配置信息为可选项，建议直接使用默认配置。
 
@@ -266,6 +330,7 @@ docker compose logs | tail -20
 | `docker-setup-cron.sh` | Cron 定时任务设置脚本 |
 | `nginx-http-proxy.conf` | Nginx 代理配置模板 |
 | `env.example` | 环境变量配置示例文件 |
+| `www/index.html` | 镜像搜索页面（Web 界面） |
 
 ---
 
@@ -276,6 +341,7 @@ docker compose logs | tail -20
 3. **重写认证头** - 返回的 `WWW-Authenticate` header 被重写为 `http://127.0.0.1:15000/service/token`
 4. **完成拉取** - Docker 使用重写后的地址获取 token，继续通过代理完成镜像拉取
 5. **自动更新** - 定时任务自动检测认证信息变化，更新配置并重新加载 Nginx
+
 
 ---
 
@@ -348,6 +414,8 @@ docker images | grep alpine
 ## ⚠️ 注意事项
 
 1. **文件权限**：
+   - **首次启动前必须设置 `www` 目录权限**，否则访问工具介绍页面会出现 403 错误
+   - 运行 `chmod 755 www/ && chmod 644 www/index.html` 设置权限
    - 确保容器可以读取挂载的配置文件
    - 检查文件路径是否正确
 
@@ -359,12 +427,10 @@ docker images | grep alpine
 
 4. **认证信息**：
    - 存储在 `.env` 文件中，默认配置已提交到仓库（启用自动更新，认证信息为空）
-   - 如果启用了自动更新，系统会在启动时自动获取并更新认证信息
-   - 如果未启用自动更新，需要手动填写 `META_TOKEN` 和 `META_SIGN` 的值
 
 5. **配置文件路径**：
-   - 默认路径是 `/root/.docker/config.json`
-   - 如果路径不同，需要在 `docker-compose.yml` 中修改挂载路径
+   - 飞牛NAS的默认配置文件路径是 `/root/.docker/config.json`
+   - 如果路径不同，需要在 `docker-compose.yml` 中修改挂载路径（应该不会出现这种情况）
 
 6. **时区设置**：
    - 默认使用北京时间（Asia/Shanghai，CST，UTC+8）

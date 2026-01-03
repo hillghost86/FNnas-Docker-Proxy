@@ -1,0 +1,46 @@
+services:
+  nginx-proxy:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: fn-docker-proxy:latest
+    container_name: fn-docker-proxy
+    ports:
+      - "0.0.0.0:15000:15000"
+    volumes:
+      - ./.env:/app/.env:rw
+      - /root/.docker/config.json:/app/fnnas-config.json:ro
+      - nginx-logs:/var/log/nginx
+      - ./logs:/var/log/cron
+      # 注意：使用构建的镜像时，www 目录已内置到镜像中，无需挂载
+      # 如果需要更新 www 目录，可以取消下面的注释并挂载
+      # - ./www:/usr/share/nginx/html:ro
+    environment:
+      - TZ=Asia/Shanghai
+      - ENABLE_AUTO_UPDATE=${ENABLE_AUTO_UPDATE:-false}
+      - UPDATE_INTERVAL=${UPDATE_INTERVAL:-3600}
+      - FNNAS_CONFIG_PATH=${FNNAS_CONFIG_PATH:-/app/fnnas-config.json}
+      - META_TOKEN=${META_TOKEN}
+      - META_SIGN=${META_SIGN}
+      - ENABLE_ACCESS_LOG=${ENABLE_ACCESS_LOG:-false}
+      - ENABLE_ERROR_LOG=${ENABLE_ERROR_LOG:-false}
+      - ACCESS_LOG_NAME=${ACCESS_LOG_NAME:-http-proxy-access.log}
+      - ERROR_LOG_NAME=${ERROR_LOG_NAME:-http-proxy-error.log}
+    restart: unless-stopped
+    networks:
+      - proxy-network
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  nginx-logs:
+    driver: local
+
+networks:
+  proxy-network:
+    driver: bridge
+
