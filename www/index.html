@@ -21,8 +21,11 @@
         <header class="text-center mb-12 fade-in">
             <h1 class="text-5xl font-bold text-gray-800 mb-4">🐳 FN Docker Proxy</h1>
             <p class="text-xl text-gray-600">反向代理 飞牛NAS 的 Docker Registry，实现 Docker 镜像加速</p>
+            <br>
+            <p class="text-xl text-gray-1000">*** 本项目仅限在 飞牛NAS 上部署，不支持其他系统 ***</p>
+            
         </header>
-
+        
         <!-- 功能特性 -->
         <section class="bg-white rounded-lg shadow-md p-8 mb-8 fade-in">
             <h2 class="text-2xl font-semibold text-gray-800 mb-6">✨ 功能特性</h2>
@@ -57,10 +60,10 @@
                 </div>
             </div>
         </section>
-
         <!-- 快速开始 -->
         <section class="bg-white rounded-lg shadow-md p-8 mb-8 fade-in">
             <h2 class="text-2xl font-semibold text-gray-800 mb-6">🚀 快速开始</h2>
+            
             <div class="space-y-6">
                 <div>
                     <h3 class="font-semibold text-gray-800 mb-2">1. 克隆项目</h3>
@@ -203,11 +206,7 @@
             <ul class="space-y-3 text-yellow-700">
                 <li class="flex items-start">
                     <span class="mr-2">•</span>
-                    <span>本项目<strong>仅限在飞牛 NAS 上使用</strong>，因为需要直接挂载飞牛 NAS 的配置文件</span>
-                </li>
-                <li class="flex items-start">
-                    <span class="mr-2">•</span>
-                    <span>确保容器可以读取挂载的配置文件（<code class="bg-yellow-100 px-1 rounded">/root/.docker/config.json</code>）</span>
+                    <span>本项目<strong>仅限在 飞牛NAS 上部署，不支持其他系统</strong>，因为需要直接挂载飞牛 NAS 的配置文件</span>
                 </li>
                 <li class="flex items-start">
                     <span class="mr-2">•</span>
